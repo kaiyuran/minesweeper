@@ -1,9 +1,18 @@
 import pygame
 import random
-gridDimensions = 10
+gridDimensions = int(input("Enter the grid dimensions(suggested 10): "))
+# gridDimensions = 10
 gridCellSize = 40
 
-numBombs = gridDimensions ** 2 // 5
+difficulty = input("Enter the difficulty (easy(e), medium(m), hard(h): ")
+
+if difficulty == "e":
+    numBombs = int(gridDimensions ** 2 // 5)
+elif difficulty == "m":
+    numBombs = int(gridDimensions ** 2 // 4.5)
+else:
+    numBombs = int(gridDimensions ** 2 // 3.5)
+
 numFlags = numBombs
 usedFlags = 0
 userClickGrid = [[False for x in range(gridDimensions)] for y in range(gridDimensions)]
@@ -39,7 +48,7 @@ def generateMap(dimensions, startPoint, numBombs = 10):
         if not grid[y][x] and (y, x) != startPoint:
             grid[y][x] = True
             numBombsPlaced += 1
-    print(grid)
+    # print(grid)
     return grid
     
 def checkFlags(flagGrid, bombGrid):
