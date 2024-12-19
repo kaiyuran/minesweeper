@@ -175,10 +175,11 @@ while run:
             pygame.draw.rect(window, colour, cell_rect)
             window.blit(boxText, (xLoc*gridCellSize+1, yLoc*gridCellSize+1))
 
-    for yLoc, rowOfCells in enumerate(bombGrid):
-        for xLoc, cell in enumerate(rowOfCells):
-            if cell and clickGrid[yLoc][xLoc]:
-                window.blit(bombImg, (xLoc*gridCellSize+1, yLoc*gridCellSize+1))
+    if gameOver:
+        for yLoc, rowOfCells in enumerate(bombGrid):
+            for xLoc, cell in enumerate(rowOfCells):
+                if cell:
+                    window.blit(bombImg, (xLoc*gridCellSize+1, yLoc*gridCellSize+1))
 
     for yLoc, rowOfCells in enumerate(flagGrid):
         for xLoc, cell in enumerate(rowOfCells):
