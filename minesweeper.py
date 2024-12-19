@@ -1,24 +1,34 @@
-#idea of classes from 
-
 import pygame
 import random
-gridDimensions = 20
+gridDimensions = 10
 gridCellSize = 40
 
 numBombs = gridDimensions ** 2 // 5
 numFlags = numBombs
 usedFlags = 0
+userClickGrid = [[False for x in range(gridDimensions)] for y in range(gridDimensions)]
 flagGrid = [[False for x in range(gridDimensions)] for y in range(gridDimensions)]
 clickGrid = [[False for x in range(gridDimensions)] for y in range(gridDimensions)]
 bombGrid = [[False for x in range(gridDimensions)] for y in range(gridDimensions)]
 
 pygame.init()
 pygame.font.init()
-window = pygame.display.set_mode((gridDimensions * gridCellSize, gridDimensions * gridCellSize))
+window = pygame.display.set_mode((gridDimensions * gridCellSize, gridDimensions * gridCellSize+40))
 clock = pygame.time.Clock()
 boxFont = pygame.font.SysFont('Comic Sans MS', 30)
-endFont = pygame.font.SysFont('Comic Sans MS', 80)
+endFont = pygame.font.SysFont('Comic Sans MS', 30)
+uiFont = pygame.font.SysFont('Comic Sans MS', 20)
+bombImg = pygame.image.load('res/bomb.png')
+flagImg = pygame.image.load('res/flag.png')
+
+
+
+
+
+
 gameOver = False
+win = False
+clickedBomb = False
 
 def generateMap(dimensions, startPoint, numBombs = 10):
     grid = [[False for x in range(dimensions)] for y in range(dimensions)]
@@ -80,7 +90,10 @@ firstClickDone = False
 run = True
 while run:
     clock.tick(60)
-    
+
+    flagsLeft = numFlags - usedFlags
+
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False 
@@ -89,40 +102,51 @@ while run:
                 run = False
         if not gameOver:
             if event.type == pygame.MOUSEBUTTONDOWN:    #1=left, 2=middle, 3=right
-                row = event.pos[1] // gridCellSize
-                col = event.pos[0] // gridCellSize
-                print(event.button)
-                if not firstClickDone:
-                    bombGrid = generateMap(gridDimensions, (row, col), numBombs)
-                    firstClickDone = True
+                try:
+                    row = event.pos[1] // gridCellSize
+                    col = event.pos[0] // gridCellSize
+                    # print(event.button)
+                    if not firstClickDone:
+                        bombGrid = generateMap(gridDimensions, (row, col), numBombs)
+                        firstClickDone = True
 
 
-                if event.button == 1 and not flagGrid[row][col]:
-                    clickGrid[row][col] = True
-                    if not bombGrid[row][col] and checkCell([row, col], bombGrid) == 0:
-                        clickGrid = expand(clickGrid, bombGrid, flagGrid, [row, col])
+                    if event.button == 1 and not flagGrid[row][col]:
+                        clickGrid[row][col] = True
+                        userClickGrid[row][col] = True
+                        if not bombGrid[row][col] and checkCell([row, col], bombGrid) == 0:
+                            clickGrid = expand(clickGrid, bombGrid, flagGrid, [row, col])
+                            # userClickGrid = expand(userClickGrid, bombGrid, flagGrid, [row, col])
 
 
-                elif event.button == 3 and not clickGrid[row][col]:
-                    flagGrid[row][col] = not flagGrid[row][col]
-                    usedFlags = 0
-                    for yLoc, rowOfCells in enumerate(flagGrid):
-                        for xLoc, cell in enumerate(rowOfCells):
-                            if cell:
-                                usedFlags += 1
-                    print("flags left:", (numFlags - usedFlags))
-                    
-                    
 
-                elif event.button == 2:
-                    # flagGrid = checkFlags(flagGrid, bombGrid)
-                    clickGrid = [[True for x in range(gridDimensions)] for y in range(gridDimensions)]
+                    elif event.button == 3 and not clickGrid[row][col]:
 
+                        if not flagGrid[row][col] and flagsLeft > 0:
+                            flagGrid[row][col] = not flagGrid[row][col]
+                        elif flagGrid[row][col]:
+                            flagGrid[row][col] = not flagGrid[row][col]
+
+
+                        usedFlags = 0
+                        for yLoc, rowOfCells in enumerate(flagGrid):
+                            for xLoc, cell in enumerate(rowOfCells):
+                                if cell:
+                                    usedFlags += 1
+                        # print("flags left:", (numFlags - usedFlags))
+                        
+                        
+
+                    elif event.button == 2:
+                        # flagGrid = checkFlags(flagGrid, bombGrid)
+                        clickGrid = [[True for x in range(gridDimensions)] for y in range(gridDimensions)]
+                except:
+                    pass
         
     if gameOver:
         for yPos, y in enumerate(flagGrid):
             for xPos, x in enumerate(y):
-                if bombGrid[yPos][xPos]:
+                if not bombGrid[yPos][xPos]:
                     flagGrid[yPos][xPos] = False        
 
         for yPos, y in enumerate(flagGrid):
@@ -136,7 +160,9 @@ while run:
             boxText = boxFont.render("", False, "#000000")
             if cell == True:
                 if bombGrid[yLoc][xLoc]:
-                    colour = "#ff0000"
+                    # print("bomb clicked")
+                    # colour = "#ff0000"
+                    # window.blit(bombImg, (xLoc*gridCellSize+1, yLoc*gridCellSize+1))
                     gameOver = True
                     
                 else:
@@ -149,19 +175,52 @@ while run:
             pygame.draw.rect(window, colour, cell_rect)
             window.blit(boxText, (xLoc*gridCellSize+1, yLoc*gridCellSize+1))
 
+    for yLoc, rowOfCells in enumerate(bombGrid):
+        for xLoc, cell in enumerate(rowOfCells):
+            if cell and clickGrid[yLoc][xLoc]:
+                window.blit(bombImg, (xLoc*gridCellSize+1, yLoc*gridCellSize+1))
+
     for yLoc, rowOfCells in enumerate(flagGrid):
         for xLoc, cell in enumerate(rowOfCells):
             if cell:
                 cell_rect = pygame.Rect(xLoc*gridCellSize+1, yLoc*gridCellSize+1, gridCellSize-2, gridCellSize-2)
-                pygame.draw.rect(window, "#fe7700", cell_rect)
-    if gameOver:
-        endText = endFont.render("Game Over", False, "#ff0000", "#000000")
-        window.blit(endText, (gridDimensions * gridCellSize // 2 - 200, gridDimensions * gridCellSize // 2 - 50))
+                # pygame.draw.rect(window, "#fe7700", cell_rect)
+                window.blit(flagImg, (xLoc*gridCellSize+1, yLoc*gridCellSize+1))
 
+    checkGameOver = True
+    for yLoc in range(gridDimensions):
+            # print(clickGrid[yLoc][xLoc], bombGrid[yLoc][xLoc])
+            if not clickGrid[yLoc][xLoc] and not bombGrid[yLoc][xLoc]:
+                checkGameOver = False
+    if checkGameOver:
+        gameOver = True
+
+
+    # win = True
+    # print(clickGrid)
+    # print(bombGrid)
+    for yLoc, rowOfCells in enumerate(bombGrid):
+        for xLoc, cell in enumerate(rowOfCells):
+            if cell and userClickGrid[yLoc][xLoc]:
+                clickedBomb = True
+                break
+    
+    #ui
+    window.blit(flagImg, (0, gridDimensions * gridCellSize + 5))
+    
+    flagsText = uiFont.render("= " + str(flagsLeft), False, "#000000")
+    window.blit(flagsText, (50, gridDimensions * gridCellSize + 5))
+
+    if gameOver:
+        if not clickedBomb:
+            # print("You Win!")
+            endText = endFont.render("You Win!", False, "#00ff00", "#000000")
+        else:
+            # print("Game Over")
+            endText = endFont.render("Game Over", False, "#ff0000", "#000000")
+        window.blit(endText, (gridDimensions * gridCellSize // 2 - 70 , gridDimensions * gridCellSize ))
 
     pygame.display.flip()
-
-
 
 pygame.quit()
 exit()
