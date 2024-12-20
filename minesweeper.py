@@ -7,11 +7,13 @@ gridCellSize = 40
 difficulty = input("Enter the difficulty (easy(e), medium(m), hard(h): ")
 
 if difficulty == "e":
-    numBombs = int(gridDimensions ** 2 // 5)
+    numBombs = int(gridDimensions ** 2 // 6)
 elif difficulty == "m":
     numBombs = int(gridDimensions ** 2 // 4.5)
-else:
+elif difficulty == "m":
     numBombs = int(gridDimensions ** 2 // 3.5)
+else:
+    numBombs = gridDimensions ** 2 - 3
 
 numFlags = numBombs
 usedFlags = 0
@@ -187,7 +189,7 @@ while run:
     if gameOver:
         for yLoc, rowOfCells in enumerate(bombGrid):
             for xLoc, cell in enumerate(rowOfCells):
-                if cell:
+                if cell and not flagGrid[yLoc][xLoc]:
                     window.blit(bombImg, (xLoc*gridCellSize+1, yLoc*gridCellSize+1))
 
     for yLoc, rowOfCells in enumerate(flagGrid):
