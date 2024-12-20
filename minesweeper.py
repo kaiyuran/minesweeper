@@ -1,5 +1,7 @@
 import pygame
 import random
+import time
+
 gridDimensions = int(input("Enter the grid dimensions(suggested 10): "))
 # gridDimensions = 10
 gridCellSize = 40
@@ -21,6 +23,8 @@ userClickGrid = [[False for x in range(gridDimensions)] for y in range(gridDimen
 flagGrid = [[False for x in range(gridDimensions)] for y in range(gridDimensions)]
 clickGrid = [[False for x in range(gridDimensions)] for y in range(gridDimensions)]
 bombGrid = [[False for x in range(gridDimensions)] for y in range(gridDimensions)]
+start = time.time()
+endTime = time.time()
 
 pygame.init()
 pygame.font.init()
@@ -223,7 +227,15 @@ while run:
     flagsText = uiFont.render("= " + str(flagsLeft), False, "#000000")
     window.blit(flagsText, (50, gridDimensions * gridCellSize + 5))
 
+    if not gameOver: #timer
+        endTime = time.time()
+    timeText = uiFont.render("Time: " + str(round(endTime - start, 2)), False, "#000000")
+    window.blit(timeText, (gridDimensions * gridCellSize - 100, gridDimensions * gridCellSize + 5))
+
     if gameOver:
+
+
+
         if not clickedBomb:
             # print("You Win!")
             endText = endFont.render("You Win!", False, "#00ff00", "#000000")
